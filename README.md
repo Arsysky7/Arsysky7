@@ -69,13 +69,13 @@ COO  (God Mode — akses menyeluruh)
 | `coo` | Semua (Sales + After Sales + Field Team) | Sales, After Sales | Semua state (God Mode) |
 | `sales` | State 1–3 & 8–11 | Forwarder, Gudang, Ekspedisi, Driver, PIC Sales | Tidak (observer) |
 | `after_sales` | State 4–7 | Karoseri, Foreman, PIC After Sales | Tidak (observer) |
-| `forwarder` | — | — | State 1, 2, 3 |
-| `karoseri` | — | — | State 4, 5, 6 |
-| `foreman` | — | — | State 7 (PDI) |
-| `gudang` | — | — | State 8, 9 |
-| `ekspedisi` / `driver` | — | — | State 10, 11 |
-| `na` | — | — | State 1 CKD |
-| `dealer` | — | — | State 2, 3 CKD |
+| `forwarder` | — | — | CBU: State 1, 2, 3 |
+| `karoseri` | — | — | CBU: State 4, 5, 6 / CKD: State 4, 5, 6 |
+| `foreman` | — | — | CBU: State 7 (PDI) / CKD: State 7 (PDI) |
+| `gudang` | — | — | CBU: State 8, 9 / CKD: State 8 (Gudang Masuk), State 9 (Gudang Keluar) |
+| `ekspedisi` / `driver` | — | — | CBU: State 10, 11 / CKD: State 10 (DO/SELESAI) |
+| `na` | — | — | CKD: State 0, 1 |
+| `dealer` | — | — | CKD: State 2, 3 |
 
 ---
 
@@ -263,25 +263,29 @@ Sebelum State 1, unit sudah ada di sistem (diimport via Excel) tapi belum dikonf
 - General Inspection (GI)
 - Penempelan Stiker SIN (Stiker Identifikasi Kendaraan)
 
-### 6.2 Alur CKD (Completely Knocked-Down) — 9 States
+### 6.2 Alur CKD (Completely Knocked-Down) — 11 States
 
 ```
-State 0 → State 1 → State 2 → State 3 → [State 4 → 5 → 6 → 7] → State 8
-  NA       NA/PDI    Keluar     Keluar    ←── After Sales ───→    SELESAI
-           QC        ke Dealer  ke Karoseri  Karoseri 0-100% PDI
+State 0 → State 1 → State 2 → State 3 → [State 4 → 5 → 6 → 7] → State 8  → State 9  → State 10
+  NA       NA/PDI    Keluar     Keluar    ←── After Sales ───→    Gudang      Gudang      DO
+           QC        ke Dealer  ke Karoseri  Karoseri 0-100% PDI  Masuk       Keluar    SELESAI
 ```
 
-| State | Nama | Role yang Aksi | Dashboard |
-|-------|------|----------------|-----------|
-| 0 | PDI di NA | `na` | After Sales |
-| 1 | Keluar ke Dealer | `na`, `dealer` | Sales |
-| 2 | Dealer | `dealer` | Sales |
-| 3 | Keluar ke Karoseri | `dealer`, `karoseri` | Sales |
-| 4 | Karoseri 0% | `karoseri` | After Sales |
-| 5 | Karoseri 50% | `karoseri` | After Sales |
-| 6 | Karoseri 100% | `karoseri` | After Sales |
-| 7 | QC / PDI | `foreman` | After Sales |
-| 8 | SELESAI | `ekspedisi`, `driver` | Sales |
+> **Catatan Alur:** Setelah State 7 (PDI), unit **wajib** melalui State 8 (Gudang Masuk) → State 9 (Gudang Keluar) → baru bisa ke State 10 (DO). Pola ini **sama persis dengan CBU** untuk memastikan semua pergerakan unit tercatat.
+
+| State | Nama | Role yang Aksi | Foto Wajib | Dashboard |
+|-------|------|----------------|------------|-----------|
+| 0 | PDI di NA | `na` | ✅ | After Sales |
+| 1 | Keluar ke Dealer | `na`, `dealer` | ✅ | Sales |
+| 2 | Dealer | `dealer` | ✅ | Sales |
+| 3 | Keluar ke Karoseri | `dealer`, `karoseri` | ✅ | Sales |
+| 4 | Karoseri 0% | `karoseri` | ✅ | After Sales |
+| 5 | Karoseri 50% | `karoseri` | ✅ | After Sales |
+| 6 | Karoseri 100% | `karoseri` | ✅ | After Sales |
+| 7 | QC / PDI | `foreman` | ✅ | After Sales |
+| 8 | Gudang Masuk | `gudang` | ✅ | Sales |
+| 9 | Gudang Keluar | `gudang` | ✅ | Sales |
+| 10 | DO / Keluar ke Customer (SELESAI) | `ekspedisi`, `driver` | ✅ + Alamat | Sales |
 
 ### 6.3 Aturan State (Sistem Tongkat Estafet)
 
@@ -290,7 +294,8 @@ State 0 → State 1 → State 2 → State 3 → [State 4 → 5 → 6 → 7] → 
 3. **PDI Fork:**
    - ✅ PDI Good → state lanjut normal
    - ❌ PDI Not Good → wajib buat laporan Trouble, state tidak bisa maju
-4. **State 11 CBU / State 8 CKD (SELESAI)** — Wajib mengisi: Foto Dashboard + Alamat (Provinsi, Kota, Alamat Lengkap) + Foto Surat Terima Unit (BAST)
+4. **State 11 CBU / State 10 CKD (SELESAI)** — Wajib mengisi: Foto Dashboard + Alamat (Provinsi, Kota, Alamat Lengkap) + Foto Surat Terima Unit (BAST)
+5. **CKD: Gudang Wajib (2 Tahap)** — Setelah State 7 (PDI), unit CKD **wajib** melewati State 8 (Gudang Masuk) dan State 9 (Gudang Keluar) sebelum DO. `ekspedisi`/`driver` tidak bisa ke State 10 sebelum `gudang` mengkonfirmasi State 8 & 9. Pola ini identik dengan CBU (State 8 & 9 CBU).
 
 ---
 
@@ -568,7 +573,7 @@ Belum diimplementasikan di frontend. Akan dibangun di backend Laravel.
 | `unit_type` | ENUM(CBU,CKD) | |
 | `model` | VARCHAR(100) | |
 | `color` | VARCHAR(50) | |
-| `current_state` | TINYINT | 0–11 CBU / 0–9 CKD |
+| `current_state` | TINYINT | 0–11 CBU / 0–10 CKD (11 states) |
 | `current_location` | VARCHAR(100) | |
 | `progress_percent` | TINYINT | 0, 50, 100 |
 | `status` | ENUM(active, completed, trouble) | |

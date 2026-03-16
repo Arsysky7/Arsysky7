@@ -159,7 +159,7 @@ flowchart TD
     end
 
     subgraph UC_SALES ["🔵 Sales Dashboard"]
-        S_DASH["Pantau Unit\nState 1–3 & State 8–11"]
+        S_DASH["Pantau Unit\nCBU: State 1–3 & 8–11\nCKD: State 1–3 & 8–10"]
         S_KPI["Lihat KPI & Progress\nPhase 1 dan Phase 4"]
         S_ACC["Kelola Akun\nField Team (Phase 1 & 4)\n+ PIC Sales"]
         S_LINK["Generate Link Mobile\nUntuk Field Team"]
@@ -173,7 +173,7 @@ flowchart TD
             A_LINK["Generate Link Mobile\nUntuk Field Team"]
         end
         subgraph UC_AS_TECH ["B — Technical (HO)"]
-            T_RESP["Beri Instruksi / ho_response\n(Semua Trouble State 1–11)"]
+            T_RESP["Beri Instruksi / ho_response\n(Semua Trouble CBU State 1–11\n/ CKD State 1–10)"]
             T_SOLVE["Tandai Trouble Selesai\n+ Isi Solusi"]
             T_WA["Kirim WhatsApp\nke Pelapor / Field Team"]
         end
@@ -319,7 +319,7 @@ State 0 → State 1 → State 2 → State 3 → [State 4 → 5 → 6 → 7] → 
 
 **Filter State yang tampil:**
 - CBU: State 1, 2, 3, 8, 9, 10, 11
-- CKD: State 1, 2, 3, 8
+- CKD: State 1, 2, 3, 8, 9, 10
 
 ---
 
@@ -351,7 +351,7 @@ Menangani operasional proses fisik unit di karoseri dan PDI.
 
 #### B — Technical (Home Office)
 
-Menangani seluruh **Trouble Handling** dari **semua state 1–11** (CBU) dan **1–8** (CKD), tidak terbatas pada state karoseri saja.
+Menangani seluruh **Trouble Handling** dari **semua state 1–11** (CBU) dan **1–10** (CKD), tidak terbatas pada state karoseri saja.
 
 | Komponen | Deskripsi |
 |----------|-----------|
@@ -497,7 +497,7 @@ Upload .xlsx
 
 ## 10. Modul Trouble Handling
 
-> **Penting:** Seluruh trouble dari **semua state (1–11 CBU / 1–8 CKD)** ditangani oleh **After Sales divisi Technical**. Sales hanya melihat trouble di dashboardnya sebagai informasi, tetapi **tidak berwenang** memberi instruksi atau menyelesaikan trouble.
+> **Penting:** Seluruh trouble dari **semua state (1–11 CBU / 1–10 CKD)** ditangani oleh **After Sales divisi Technical**. Sales hanya melihat trouble di dashboardnya sebagai informasi, tetapi **tidak berwenang** memberi instruksi atau menyelesaikan trouble.
 
 ### 10.1 Alur Status Trouble
 
@@ -525,7 +525,7 @@ Wajib diisi:
 - **Foto Kerusakan** — opsional
 - **Lokasi Trouble** — kota/alamat kejadian
 
-> Trouble bisa dilaporkan dari **state mana saja** (1–11). Bukan hanya dari fase karoseri.
+> Trouble bisa dilaporkan dari **state mana saja** (CBU: 1–11 / CKD: 1–10). Bukan hanya dari fase karoseri.
 
 ### 10.3 Trouble Lock
 

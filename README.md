@@ -36,8 +36,10 @@ Aplikasi menggunakan **Role-Based Access Control (RBAC)** dengan prinsip:
 
 1. **Field Team** hanya bisa mengerjakan tugasnya sesuai state yang ditugaskan — tidak bisa kelola akun apapun
 2. **Sales** mengelola field team di phase/state mereka + dashboard phase 1 & 4
-3. **After Sales** mengelola field team di phase/state mereka + dashboard phase 2 & 3 (state 4-7)
-4. **COO** adalah God Mode — akses penuh ke semua dashboard dan kelola akun Sales & After Sales
+3. **After Sales Head (`as_head`)** adalah "Mini COO" khusus lingkup After Sales — import unit, kelola semua akun AS, akses semua dashboard AS, bisa handle trouble & God Mode dalam scope After Sales
+4. **After Sales Workshop (`as_workshop`)** mengelola operasional karoseri & PDI (State 4–7)
+5. **After Sales Technical (`as_technical`)** menangani seluruh trouble dari semua state
+6. **COO** adalah God Mode — akses penuh ke semua dashboard dan kelola akun Sales & After Sales Head
 
 > **Tidak ada role "admin"** dalam sistem ini. Fungsi administratif didelegasikan sesuai hierarki di atas.
 
@@ -50,30 +52,40 @@ COO  (God Mode — akses menyeluruh)
 │
 ├── SALES
 │   ├── Kelola akun: Forwarder, Gudang, Ekspedisi, Driver, PIC Sales
-│   └── Dashboard: monitor unit State 1–3 dan State 8–11
-│       ├── Forwarder   → State 1, 2, 3
-│       ├── Gudang      → State 8, 9
-│       └── Ekspedisi / Driver → State 10, 11
+│   └── Dashboard: monitor unit CBU State 1–3 & 8–11 / CKD State 1–3 & 8–10
+│       ├── Forwarder        → CBU State 1, 2, 3
+│       ├── Gudang           → CBU State 8, 9 / CKD State 8, 9
+│       └── Ekspedisi/Driver → CBU State 10, 11 / CKD State 10
 │
-└── AFTER SALES
-    ├── Kelola akun: Karoseri, Foreman, PIC After Sales
-    └── Dashboard: monitor unit State 4–7
-        ├── Karoseri → State 4, 5, 6
-        └── Foreman  → State 7 (QC/PDI)
+└── AFTER SALES HEAD (as_head) — "Mini COO" khusus After Sales
+    ├── Import unit Excel
+    ├── Handle trouble (semua state)
+    ├── God Mode dalam scope After Sales
+    ├── Kelola akun: as_workshop, as_technical, Karoseri, Foreman
+    │
+    ├── AS WORKSHOP (as_workshop)
+    │   └── Dashboard: monitor unit State 4–7
+    │       ├── Karoseri → State 4, 5, 6
+    │       └── Foreman  → State 7 (QC/PDI)
+    │
+    └── AS TECHNICAL (as_technical)
+        └── Handle semua trouble CBU State 1–11 / CKD State 1–10
 ```
 
 ### 3.3 Tabel Hak Akses per Role
 
-| Role | Dashboard | Kelola Akun | Update State |
-|------|-----------|-------------|--------------|
-| `coo` | Semua (Sales + After Sales + Field Team) | Sales, After Sales | Semua state (God Mode) |
-| `sales` | State 1–3 & 8–11 | Forwarder, Gudang, Ekspedisi, Driver, PIC Sales | Tidak (observer) |
-| `after_sales` | State 4–7 | Karoseri, Foreman, PIC After Sales | Tidak (observer) |
+| Role | Dashboard | Kelola Akun | Hak Istimewa |
+|------|-----------|-------------|---------------|
+| `coo` | Semua (Sales + After Sales + Field Team) | `sales`, `as_head` | God Mode penuh, Import/Export |
+| `sales` | CBU 1–3 & 8–11 / CKD 1–3 & 8–10 | `forwarder`, `gudang`, `ekspedisi`, `driver`, PIC Sales | — |
+| `as_head` | Semua dashboard After Sales | `as_workshop`, `as_technical`, `karoseri`, `foreman` | Import unit, handle trouble, God Mode scope AS |
+| `as_workshop` | State 4–7 (Workshop Operation) | `karoseri`, `foreman` | Generate link mobile |
+| `as_technical` | Trouble semua state | — | Handle trouble, WhatsApp integration |
 | `forwarder` | — | — | CBU: State 1, 2, 3 |
-| `karoseri` | — | — | CBU: State 4, 5, 6 / CKD: State 4, 5, 6 |
-| `foreman` | — | — | CBU: State 7 (PDI) / CKD: State 7 (PDI) |
-| `gudang` | — | — | CBU: State 8, 9 / CKD: State 8 (Gudang Masuk), State 9 (Gudang Keluar) |
-| `ekspedisi` / `driver` | — | — | CBU: State 10, 11 / CKD: State 10 (DO/SELESAI) |
+| `karoseri` | — | — | CBU & CKD: State 4, 5, 6 |
+| `foreman` | — | — | CBU & CKD: State 7 (PDI) |
+| `gudang` | — | — | CBU: State 8, 9 / CKD: State 8, 9 |
+| `ekspedisi` / `driver` | — | — | CBU: State 10, 11 / CKD: State 10 |
 | `na` | — | — | CKD: State 0, 1 |
 | `dealer` | — | — | CKD: State 2, 3 |
 
@@ -165,15 +177,20 @@ flowchart TD
         S_LINK["Generate Link Mobile\nUntuk Field Team"]
     end
 
-    subgraph UC_AS ["🟣 After Sales Dashboard"]
-        subgraph UC_AS_WO ["A — Workshop Operation"]
+    subgraph UC_AS ["🟣 After Sales"]
+        subgraph UC_AS_HEAD ["👑 as_head — After Sales Head"]
+            AH_IMPORT["Import Unit Excel"]
+            AH_ACC["Kelola Akun\nas_workshop, as_technical,\nKaroseri, Foreman"]
+            AH_GOD["God Mode Scope AS\n(Edit State Manual)"]
+            AH_TROUBLE["Handle Trouble\n(Semua State)"]
+        end
+        subgraph UC_AS_WO ["A — as_workshop: Workshop Operation"]
             A_DASH["Pantau Unit State 4–7\n(Karoseri & PDI)"]
             A_KPI["KPI Progress Karoseri\n0% / 50% / 100% + PDI"]
-            A_ACC["Kelola Akun Karoseri,\nForeman, PIC After Sales"]
             A_LINK["Generate Link Mobile\nUntuk Field Team"]
         end
-        subgraph UC_AS_TECH ["B — Technical (HO)"]
-            T_RESP["Beri Instruksi / ho_response\n(Semua Trouble CBU State 1–11\n/ CKD State 1–10)"]
+        subgraph UC_AS_TECH ["B — as_technical: Technical (HO)"]
+            T_RESP["Beri Instruksi / ho_response\n(Semua Trouble CBU 1–11\n/ CKD 1–10)"]
             T_SOLVE["Tandai Trouble Selesai\n+ Isi Solusi"]
             T_WA["Kirim WhatsApp\nke Pelapor / Field Team"]
         end
@@ -209,9 +226,12 @@ flowchart TD
     SALES --> S_ACC
     SALES --> S_LINK
 
+    AS --> AH_IMPORT
+    AS --> AH_ACC
+    AS --> AH_GOD
+    AS --> AH_TROUBLE
     AS --> A_DASH
     AS --> A_KPI
-    AS --> A_ACC
     AS --> A_LINK
     AS --> T_RESP
     AS --> T_SOLVE
@@ -325,11 +345,28 @@ State 0 → State 1 → State 2 → State 3 → [State 4 → 5 → 6 → 7] → 
 
 ### 7.2 Dashboard After Sales
 
-**Akses:** Role `after_sales` dan `coo`
+After Sales terbagi menjadi **3 role** dengan dashboard masing-masing:
 
-Dashboard After Sales terbagi menjadi **2 divisi utama:**
+---
 
-#### A — Workshop Operation
+#### 👑 as_head — After Sales Head ("Mini COO" Scope AS)
+
+**Akses:** Role `as_head` dan `coo`
+
+| Komponen | Deskripsi |
+|----------|-----------|
+| Sales View AS | Embed dashboard Workshop & Technical |
+| KPI Global AS | KPI semua unit After Sales tanpa filter |
+| Import/Export Excel | Upload template unit, download report |
+| Manajemen Akun AS | Buat/edit akun `as_workshop`, `as_technical`, `karoseri`, `foreman` |
+| God Mode Scope AS | Edit state unit manual dalam lingkup After Sales |
+| Handle Trouble | Bisa beri instruksi & selesaikan trouble (semua state) |
+
+---
+
+#### A — as_workshop: Workshop Operation
+
+**Akses:** Role `as_workshop`, `as_head`, dan `coo`
 
 Menangani operasional proses fisik unit di karoseri dan PDI.
 
@@ -340,7 +377,6 @@ Menangani operasional proses fisik unit di karoseri dan PDI.
 | Karoseri Panel | Unit per karoseri + progress pengerjaan + aging alert |
 | Unit Table | Tabel unit dengan filter state, karoseri, progress |
 | PDI Summary | Ringkasan hasil PDI: passed/failed/pending per unit |
-| Manajemen Akun | Buat/edit/nonaktifkan akun: `karoseri`, `foreman`, PIC After Sales |
 | Generate Link | Buat link mobile untuk Karoseri & Foreman |
 
 **Filter State yang tampil (Workshop Operation):**
@@ -349,9 +385,11 @@ Menangani operasional proses fisik unit di karoseri dan PDI.
 
 ---
 
-#### B — Technical (Home Office)
+#### B — as_technical: Technical (Home Office)
 
-Menangani seluruh **Trouble Handling** dari **semua state 1–11** (CBU) dan **1–10** (CKD), tidak terbatas pada state karoseri saja.
+**Akses:** Role `as_technical`, `as_head`, dan `coo`
+
+Menangani seluruh **Trouble Handling** dari **semua state 1–11** (CBU) dan **1–10** (CKD).
 
 | Komponen | Deskripsi |
 |----------|-----------|
@@ -363,7 +401,7 @@ Menangani seluruh **Trouble Handling** dari **semua state 1–11** (CBU) dan **1
 | WhatsApp Integration | Tombol kirim WA ke pelapor & field team terkait |
 | Trouble History | Riwayat trouble yang sudah solved |
 
-> **After Sales Technical** adalah satu-satunya pihak (selain COO) yang bisa memberikan instruksi dan menyelesaikan trouble — berapapun state unit saat trouble terjadi.
+> **as_technical** dan **as_head** (selain COO) yang bisa memberikan instruksi dan menyelesaikan trouble — berapapun state unit saat trouble terjadi.
 
 ---
 
@@ -393,9 +431,11 @@ Menangani seluruh **Trouble Handling** dari **semua state 1–11** (CBU) dan **1
 
 | Yang Membuat | Role yang Bisa Dibuat |
 |-------------|----------------------|
-| COO | `sales`, `after_sales` |
-| Sales | `forwarder`, `gudang`, `ekspedisi`, `driver`, PIC `sales` |
-| After Sales | `karoseri`, `foreman`, PIC `after_sales` |
+| `coo` | `sales`, `as_head` |
+| `sales` | `forwarder`, `gudang`, `ekspedisi`, `driver`, PIC `sales` |
+| `as_head` | `as_workshop`, `as_technical`, `karoseri`, `foreman` |
+| `as_workshop` | `karoseri`, `foreman` (generate link saja, tidak buat akun baru) |
+| `as_technical` | ❌ Tidak bisa buat akun |
 | Field Team | ❌ Tidak bisa buat akun |
 
 ### 8.2 Fitur Manajemen Akun
@@ -413,7 +453,7 @@ Menangani seluruh **Trouble Handling** dari **semua state 1–11** (CBU) dan **1
 
 ### 9.1 File Template Resmi: `template_import_unit.xlsx`
 
-Admin (COO) **wajib** menggunakan template ini untuk upload. Template tersedia via tombol **"⬇ Download Template"** di dashboard COO.
+Role `as_head` dan `coo` **wajib** menggunakan template ini untuk upload unit baru ke sistem. Template tersedia via tombol **"⬇ Download Template"** di dashboard masing-masing.
 
 **Kolom Wajib:**
 

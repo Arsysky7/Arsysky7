@@ -156,7 +156,7 @@ Link ini di-generate oleh Sales (untuk field team mereka) atau After Sales (untu
 ```mermaid
 flowchart TD
     %% =================== AKTOR ===================
-    FT(["👷 Field Team\n─────────────────\nForwarder\nKaroseri\nForeman\nGudang\nEkspedisi / Driver\nNA / Dealer"])
+    FT(["👷 Field Team\n─────────────────\nForwarder\nKaroseri\nForeman\nGudang\nKurir\nKer (LOLO Ker)\nEkspedisi / Driver\nNA / Dealer"])
     SALES(["🔵 Sales"])
     AS(["🟣 After Sales"])
     COO(["🔴 COO\n(God Mode)"])
@@ -175,10 +175,11 @@ flowchart TD
     end
 
     subgraph UC_SALES ["🔵 Sales Dashboard"]
-        S_DASH["Pantau Unit\nCBU: State 1–3 & 8–11\nCKD: State 1–3 & 8–10"]
+        S_DASH["Pantau Unit\nCBU: State 1–3 & 10–15\nCKD: State 1–3 & 10–14"]
         S_KPI["Lihat KPI & Progress\nPhase 1 dan Phase 4"]
-        S_ACC["Kelola Akun\nField Team (Phase 1 & 4)\n+ PIC Sales"]
+        S_ACC["Kelola Akun\nForwarder, Gudang, Kurir, Ker\nEkspedisi, Driver, PIC Sales"]
         S_LINK["Generate Link Mobile\nUntuk Field Team"]
+        S_EXPORT["Export Excel BAST\n(Filter Tanggal, Tipe, Karoseri)"]
     end
 
     subgraph UC_AS ["🟣 After Sales"]
@@ -189,12 +190,12 @@ flowchart TD
             AH_TROUBLE["Handle Trouble\n(Semua State)"]
         end
         subgraph UC_AS_WO ["A — as_workshop: Workshop Operation"]
-            A_DASH["Pantau Unit State 4–7\n(Karoseri & PDI)"]
-            A_KPI["KPI Progress Karoseri\n0% / 50% / 100% + PDI"]
+            A_DASH["Pantau Unit State 4–9\n(Karoseri & PDI)"]
+            A_KPI["KPI Progress Karoseri\n0% / 25% / 50% / 75% / 100% + PDI"]
             A_LINK["Generate Link Mobile\nUntuk Field Team"]
         end
         subgraph UC_AS_TECH ["B — as_technical: Technical (HO)"]
-            T_RESP["Beri Instruksi / ho_response\n(Semua Trouble CBU 1–11\n/ CKD 1–10)"]
+            T_RESP["Beri Instruksi / ho_response\n(Semua Trouble CBU 1–15\n/ CKD 1–14)"]
             T_SOLVE["Tandai Trouble Selesai\n+ Isi Solusi"]
         end
     end
@@ -228,6 +229,7 @@ flowchart TD
     SALES --> S_KPI
     SALES --> S_ACC
     SALES --> S_LINK
+    SALES --> S_EXPORT
 
     AS --> AH_IMPORT
     AS --> AH_ACC

@@ -386,16 +386,16 @@ Menangani operasional proses fisik unit di karoseri dan PDI.
 
 | Komponen | Deskripsi |
 |----------|-----------|
-| KPI Cards | Total unit di State 4–7, PDI status (passed/failed/pending) |
-| Flow Overview | Visualisasi progress karoseri: 0% → 50% → 100% → PDI |
+| KPI Cards | Total unit di State 4–9, PDI status (passed/failed/pending) |
+| Flow Overview | Visualisasi progress karoseri: 0% → 25% → 50% → 75% → 100% → PDI |
 | Karoseri Panel | Unit per karoseri + progress pengerjaan + aging alert |
-| Unit Table | Tabel unit dengan filter state, karoseri, progress |
+| Unit Table | Tabel unit dengan filter state, karoseri, progress (0/25/50/75/100%) |
 | PDI Summary | Ringkasan hasil PDI: passed/failed/pending per unit |
 | Generate Link | Buat link mobile untuk Karoseri & Foreman |
 
 **Filter State yang tampil (Workshop Operation):**
-- CBU: State 4, 5, 6, 7
-- CKD: State 4, 5, 6, 7 (dan State 0 PDI di NA)
+- CBU: State 4, 5, 6, 7, 8, 9
+- CKD: State 4, 5, 6, 7, 8, 9 (dan State 0 PDI di NA)
 
 ---
 
@@ -403,7 +403,7 @@ Menangani operasional proses fisik unit di karoseri dan PDI.
 
 **Akses:** Role `as_technical`, `as_head`, dan `coo`
 
-Menangani seluruh **Trouble Handling** dari **semua state 1–11** (CBU) dan **1–10** (CKD).
+Menangani seluruh **Trouble Handling** dari **semua state 1–15** (CBU) dan **1–14** (CKD).
 
 | Komponen | Deskripsi |
 |----------|-----------|
@@ -445,7 +445,7 @@ Menangani seluruh **Trouble Handling** dari **semua state 1–11** (CBU) dan **1
 | Yang Membuat | Role yang Bisa Dibuat |
 |-------------|----------------------|
 | `coo` | `sales`, `as_head` |
-| `sales` | `forwarder`, `gudang`, `ekspedisi`, `driver`, PIC `sales` |
+| `sales` | `forwarder`, `gudang`, `kurir`, `ker`, `ekspedisi`, `driver`, PIC `sales` |
 | `as_head` | `as_workshop`, `as_technical`, `karoseri`, `foreman` |
 | `as_workshop` | `karoseri`, `foreman` (generate link saja, tidak buat akun baru) |
 | `as_technical` | ❌ Tidak bisa buat akun |
@@ -550,7 +550,7 @@ Upload .xlsx
 
 ## 10. Modul Trouble Handling
 
-> **Penting:** Seluruh trouble dari **semua state (1–11 CBU / 1–10 CKD)** ditangani oleh **After Sales divisi Technical**. Sales hanya melihat trouble di dashboardnya sebagai informasi, tetapi **tidak berwenang** memberi instruksi atau menyelesaikan trouble.
+> **Penting:** Seluruh trouble dari **semua state (1–15 CBU / 1–14 CKD)** ditangani oleh **After Sales divisi Technical**. Sales hanya melihat trouble di dashboardnya sebagai informasi, tetapi **tidak berwenang** memberi instruksi atau menyelesaikan trouble.
 
 ### 10.1 Alur Status Trouble
 
@@ -578,7 +578,7 @@ Wajib diisi:
 - **Foto Kerusakan** — opsional
 - **Lokasi Trouble** — kota/alamat kejadian
 
-> Trouble bisa dilaporkan dari **state mana saja** (CBU: 1–15 / CKD: 1–14). Bukan hanya dari fase karoseri.
+> Trouble bisa dilaporkan dari **state mana saja** (CBU: 1–15 / CKD: 1–14). Khusus **LOLO Ker (State 12)**: jika Tidak Lolos, otomatis membuat trouble dan mengunci unit.
 
 ### 10.3 Trouble Lock
 
@@ -668,9 +668,9 @@ Belum diimplementasikan di frontend. Akan dibangun di backend Laravel.
 | `unit_type` | ENUM(CBU,CKD) | |
 | `model` | VARCHAR(100) | |
 | `color` | VARCHAR(50) | |
-| `current_state` | TINYINT | 0–11 CBU / 0–10 CKD (11 states) |
+| `current_state` | TINYINT | 0–15 CBU / 0–14 CKD |
 | `current_location` | VARCHAR(100) | |
-| `progress_percent` | TINYINT | 0, 50, 100 |
+| `progress_percent` | TINYINT | 0, 25, 50, 75, 100 (milestone karoseri) |
 | `status` | ENUM(active, completed, trouble) | |
 | `forwarder` | VARCHAR(100) | |
 | `delivery_letter` | VARCHAR(100) | Nomor surat jalan |
